@@ -3,7 +3,10 @@
 //! * [`AtomicCell`], a thread-safe mutable memory location.
 //! * [`AtomicConsume`], for reading from primitive atomic types with "consume" ordering.
 
-#[cfg(target_has_atomic = "ptr")]
+#[cfg(any(
+    target_has_atomic = "ptr",
+    all(target_arch = "arm", target_os = "none", target_abi = "eabi", not(target_has_atomic = "ptr")),
+))]
 #[cfg(not(crossbeam_loom))]
 // Use "wide" sequence lock if the pointer width <= 32 for preventing its counter against wrap
 // around.
@@ -18,13 +21,19 @@
 )]
 mod seq_lock;
 
-#[cfg(target_has_atomic = "ptr")]
+#[cfg(any(
+    target_has_atomic = "ptr",
+    all(target_arch = "arm", target_os = "none", target_abi = "eabi", not(target_has_atomic = "ptr")),
+))]
 // We cannot provide AtomicCell under cfg(crossbeam_loom) because loom's atomic
 // types have a different in-memory representation than the underlying type.
 // TODO: The latest loom supports fences, so fallback using seqlock may be available.
 #[cfg(not(crossbeam_loom))]
 mod atomic_cell;
-#[cfg(target_has_atomic = "ptr")]
+#[cfg(any(
+    target_has_atomic = "ptr",
+    all(target_arch = "arm", target_os = "none", target_abi = "eabi", not(target_has_atomic = "ptr")),
+))]
 #[cfg(not(crossbeam_loom))]
 pub use atomic_cell::AtomicCell;
 
